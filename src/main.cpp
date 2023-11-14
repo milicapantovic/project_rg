@@ -43,6 +43,13 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+struct DirLight {
+    glm::vec3 direction;
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
+
 struct PointLight {
     glm::vec3 position;
     glm::vec3 ambient;
@@ -53,6 +60,22 @@ struct PointLight {
     float linear;
     float quadratic;
 };
+
+struct SpotLight {
+    glm::vec3 position;
+    glm::vec3 direction;
+    float cutOff;
+    float outerCutOff;
+
+    float constant;
+    float linear;
+    float quadratic;
+
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
+
 
 struct ProgramState {
     glm::vec3 clearColor = glm::vec3(0);
@@ -65,6 +88,8 @@ struct ProgramState {
 
     float backpackScale = 1.0f;
     PointLight pointLight;
+    DirLight dirLight;
+    SpotLight spotLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
 
@@ -172,22 +197,50 @@ int main() {
     // load models
     // -----------
     Model ourModel("resources/objects/Tree/Tree.obj");
-    Model ourModel1("resources/objects/Tree/Tree.obj");
-    Model ourModel2("resources/objects/Tree/Tree.obj");
+    Model ourModel1("resources/objects/mountain/avatar_mountain.obj");
+    Model ourModel2("resources/objects/rocks/rocks.obj");
+    Model ourModel3("resources/objects/grass/10450_Rectangular_Grass_Patch_v1_iterations-2.obj");
+//    Model ourModel4("resources/objects/");
+//    Model ourModel5("resources/objects/");
+//    Model ourModel6("resources/objects/");
 
     ourModel.SetShaderTextureNamePrefix("material.");
+    ourModel1.SetShaderTextureNamePrefix("material.");
+    ourModel2.SetShaderTextureNamePrefix("material.");
+    ourModel3.SetShaderTextureNamePrefix("material.");
+
+    DirLight& dirLight = programState->dirLight;
+    dirLight.direction = glm::vec3( -0.2f, -1.0f, -0.3f);
+    dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
+    dirLight.diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+    dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
     pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
-    pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
+    pointLight.diffuse = glm::vec3(0.8, 0.8, 0.8);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
     pointLight.constant = 1.0f;
     pointLight.linear = 0.09f;
     pointLight.quadratic = 0.032f;
 
-    float skyboxVertices[] = {
+
+
+    SpotLight& spotLight = programState->spotLight;
+    spotLight.position = programState->camera.Position;
+    spotLight.direction = programState->camera.Front;
+    spotLight.ambient = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight.constant = 1.0f;
+    spotLight.linear = 0.09f;
+    spotLight.quadratic = 0.032f;
+    spotLight.cutOff = glm::cos(glm::radians(12.5f));
+    spotLight.outerCutOff = glm::cos(glm::radians(15.0f));
+
+
+            float skyboxVertices[] = {
             // positions
             -1.0f,  1.0f, -1.0f,
             -1.0f, -1.0f, -1.0f,
@@ -246,12 +299,12 @@ int main() {
 
     vector<std::string> faces
             {
-                    FileSystem::getPath("resources/textures/skybox/right.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/left.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/top.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/bottom.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/front.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/back.jpg")
+                    FileSystem::getPath("resources/textures/skybox1/right.jpg"),
+                    FileSystem::getPath("resources/textures/skybox1/left.jpg"),
+                    FileSystem::getPath("resources/textures/skybox1/top.jpg"),
+                    FileSystem::getPath("resources/textures/skybox1/bottom.jpg"),
+                    FileSystem::getPath("resources/textures/skybox1/front.jpg"),
+                    FileSystem::getPath("resources/textures/skybox1/back.jpg")
             };
     unsigned int cubemapTexture = loadCubemap(faces);
 
@@ -282,7 +335,12 @@ int main() {
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
-        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
+
+        ourShader.setVec3("dirLight.direction", dirLight.direction);
+        ourShader.setVec3("dirLight.ambient", dirLight.ambient);
+        ourShader.setVec3("dirLight.diffuse", dirLight.diffuse);
+        ourShader.setVec3("dirLight.specular", dirLight.specular);
+
         ourShader.setVec3("pointLight.position", pointLight.position);
         ourShader.setVec3("pointLight.ambient", pointLight.ambient);
         ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
@@ -292,6 +350,17 @@ int main() {
         ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
+
+        ourShader.setVec3("spotLight.position", spotLight.position);
+        ourShader.setVec3("spotLight.direction", spotLight.direction);
+        ourShader.setVec3("spotLight.ambient", spotLight.ambient);
+        ourShader.setVec3("spotLight.diffuse", spotLight.diffuse);
+        ourShader.setVec3("spotLight.specular", spotLight.specular);
+        ourShader.setFloat("spotLight.constant", spotLight.constant);
+        ourShader.setFloat("spotLight.linear", spotLight.linear);
+        ourShader.setFloat("spotLight.quadratic", spotLight.quadratic);
+        ourShader.setFloat("spotLight.cutOff", spotLight.cutOff);
+        ourShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
@@ -299,27 +368,96 @@ int main() {
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
+        float time = glfwGetTime();
         // render the loaded model
+
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model,
-                               programState->treePosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+                               glm::vec3(-35.0f, -0.4f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
+        model = glm::rotate(model, (float)(time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
         ourShader.setMat4("model", model);
+        ourModel.Draw(ourShader);
+
+        glm::mat4 model_1 = glm::mat4(1.0f);
+        model_1 = glm::translate(model_1,
+                                 glm::vec3(-35.0f, -0.4f, 30.0f)); // translate it down so it's at the center of the scene
+        model_1 = glm::rotate(model_1, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
+        model_1 = glm::scale(model_1, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model_1);
         ourModel.Draw(ourShader);
 
         glm::mat4 model1 = glm::mat4(1.0f);
         model1 = glm::translate(model1,
-                               glm::vec3(10.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model1 = glm::scale(model1, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+                               glm::vec3(35.0f, -0.4f, 0.0f)); // translate it down so it's at the center of the scene
+        model1 = glm::scale(model1, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
+        model1 = glm::rotate(model1, (float)(time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
         ourShader.setMat4("model", model1);
-        ourModel1.Draw(ourShader);
+        ourModel.Draw(ourShader);
 
         glm::mat4 model2 = glm::mat4(1.0f);
         model2 = glm::translate(model2,
-                               glm::vec3 (20.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model2 = glm::scale(model2, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+                                glm::vec3 (35.0f, -0.4f, 30.0f)); // translate it down so it's at the center of the scene
+        model2 = glm::rotate(model2, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
+        model2 = glm::scale(model2, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model2);
-        ourModel2.Draw(ourShader);
+        ourModel.Draw(ourShader);
+
+
+        glm::mat4 model4 = glm::mat4(1.0f);
+        model4 = glm::translate(model4,
+                                glm::vec3 (35.0f, -0.8f, 0.0f)); // translate it down so it's at the center of the scene
+        model4 = glm::rotate(model4, (float)(time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
+        model4 = glm::scale(model4, glm::vec3(2.0f));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model4);
+        ourModel1.Draw(ourShader);
+
+
+
+        glm::mat4 model3 = glm::mat4(1.0f);
+        model3 = glm::translate(model3,
+                                glm::vec3 (35.0f, -0.8f, 30.0f)); // translate it down so it's at the center of the scene
+        model3 = glm::rotate(model3, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
+        model3 = glm::scale(model3, glm::vec3(2.0f));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model3);
+        ourModel1.Draw(ourShader);
+
+
+
+        glm::mat4 model_4 = glm::mat4(1.0f);
+        model_4 = glm::translate(model_4,
+                                glm::vec3 (-35.0f, -0.8f, 0.0f)); // translate it down so it's at the center of the scene
+        model_4 = glm::rotate(model_4, (float)(time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
+        model_4 = glm::scale(model_4, glm::vec3(2.0f));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model_4);
+        ourModel1.Draw(ourShader);
+
+        glm::mat4 model5 = glm::mat4(1.0f);
+        model5 = glm::translate(model5,
+                                glm::vec3 (-35.0f, -0.8f, 30.0f)); // translate it down so it's at the center of the scene
+        model5 = glm::rotate(model5, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
+        model5 = glm::scale(model5, glm::vec3(2.0f));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model5);
+        ourModel1.Draw(ourShader);
+
+        glm::mat4 model6 = glm::mat4(1.0f);
+        model6 = glm::translate(model6,
+                                glm::vec3 (0.0f, 0.0f, 15.0f)); // translate it down so it's at the center of the scene
+//        model6 = glm::rotate(model6, 1.6f, glm::vec3(0.0f, 1.0f, 0.0f));
+//        model6 = glm::rotate(model6, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
+        model6 = glm::scale(model6, glm::vec3(10.0f));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model6);
+        ourModel.Draw(ourShader);
+
+        glm::mat4 model7 = glm::mat4(1.0f);
+        model7 = glm::translate(model7,
+                                glm::vec3 (0.0f, -10.0f, 10.0f)); // translate it down so it's at the center of the scene
+//        model6 = glm::rotate(model7, 1.6f, glm::vec3(0.0f, 1.0f, 0.0f));
+        model7 = glm::rotate(model7, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
+        model7 = glm::scale(model7, glm::vec3(0.3f));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model7);
+        ourModel3.Draw(ourShader);
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
