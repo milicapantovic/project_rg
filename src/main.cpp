@@ -33,6 +33,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+bool blinn = false;
+bool blinnKeyPressed = false;
+
 // camera
 
 float lastX = SCR_WIDTH / 2.0f;
@@ -42,6 +45,7 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
 
 struct DirLight {
     glm::vec3 direction;
@@ -61,20 +65,7 @@ struct PointLight {
     float quadratic;
 };
 
-struct SpotLight {
-    glm::vec3 position;
-    glm::vec3 direction;
-    float cutOff;
-    float outerCutOff;
 
-    float constant;
-    float linear;
-    float quadratic;
-
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-};
 
 
 struct ProgramState {
@@ -82,14 +73,8 @@ struct ProgramState {
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    glm::vec3 treePosition = glm::vec3(0.0f);
-    glm::vec3 treePosition1 = glm::vec3(10.0f, 0.0f, 0.0f);
-    glm::vec3 treePosition2 = glm::vec3(20.0f, 0.0f, 0.0f);
-
-    float backpackScale = 1.0f;
     PointLight pointLight;
     DirLight dirLight;
-    SpotLight spotLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
 
@@ -167,8 +152,13 @@ int main() {
         return -1;
     }
 
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
     stbi_set_flip_vertically_on_load(true);
+
 
     programState = new ProgramState;
     programState->LoadFromFile("resources/program_state.txt");
@@ -192,13 +182,13 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader ourShader("resources/shaders/light.vs", "resources/shaders/light.fs");
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
     // load models
     // -----------
     Model ourModel("resources/objects/Tree/Tree.obj");
     Model ourModel1("resources/objects/mountain/avatar_mountain.obj");
-    Model ourModel2("resources/objects/rocks/rocks.obj");
+    Model ourModel2("resources/objects/bench/curvedBench.obj");
     Model ourModel3("resources/objects/grass/10450_Rectangular_Grass_Patch_v1_iterations-2.obj");
 //    Model ourModel4("resources/objects/");
 //    Model ourModel5("resources/objects/");
@@ -210,13 +200,13 @@ int main() {
     ourModel3.SetShaderTextureNamePrefix("material.");
 
     DirLight& dirLight = programState->dirLight;
-    dirLight.direction = glm::vec3( -0.2f, -1.0f, -0.3f);
+    dirLight.direction = glm::vec3( 50.0f, 10.0f, 2.0f);
     dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
     dirLight.diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
     dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
 
     PointLight& pointLight = programState->pointLight;
-    pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
+    pointLight.position = glm::vec3(50.0f, 10.0, 10.0);
     pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
     pointLight.diffuse = glm::vec3(0.8, 0.8, 0.8);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
@@ -227,20 +217,7 @@ int main() {
 
 
 
-    SpotLight& spotLight = programState->spotLight;
-    spotLight.position = programState->camera.Position;
-    spotLight.direction = programState->camera.Front;
-    spotLight.ambient = glm::vec3(1.0f, 1.0f, 1.0f);
-    spotLight.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
-    spotLight.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    spotLight.constant = 1.0f;
-    spotLight.linear = 0.09f;
-    spotLight.quadratic = 0.032f;
-    spotLight.cutOff = glm::cos(glm::radians(12.5f));
-    spotLight.outerCutOff = glm::cos(glm::radians(15.0f));
-
-
-            float skyboxVertices[] = {
+    float skyboxVertices[] = {
             // positions
             -1.0f,  1.0f, -1.0f,
             -1.0f, -1.0f, -1.0f,
@@ -299,12 +276,12 @@ int main() {
 
     vector<std::string> faces
             {
-                    FileSystem::getPath("resources/textures/skybox1/right.jpg"),
-                    FileSystem::getPath("resources/textures/skybox1/left.jpg"),
-                    FileSystem::getPath("resources/textures/skybox1/top.jpg"),
-                    FileSystem::getPath("resources/textures/skybox1/bottom.jpg"),
-                    FileSystem::getPath("resources/textures/skybox1/front.jpg"),
-                    FileSystem::getPath("resources/textures/skybox1/back.jpg")
+                    FileSystem::getPath("resources/textures/skybox/right.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/left.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/top.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/bottom.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/front.jpg"),
+                    FileSystem::getPath("resources/textures/skybox/back.jpg")
             };
     unsigned int cubemapTexture = loadCubemap(faces);
 
@@ -350,17 +327,8 @@ int main() {
         ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
+        ourShader.setInt("blinn", blinn);
 
-        ourShader.setVec3("spotLight.position", spotLight.position);
-        ourShader.setVec3("spotLight.direction", spotLight.direction);
-        ourShader.setVec3("spotLight.ambient", spotLight.ambient);
-        ourShader.setVec3("spotLight.diffuse", spotLight.diffuse);
-        ourShader.setVec3("spotLight.specular", spotLight.specular);
-        ourShader.setFloat("spotLight.constant", spotLight.constant);
-        ourShader.setFloat("spotLight.linear", spotLight.linear);
-        ourShader.setFloat("spotLight.quadratic", spotLight.quadratic);
-        ourShader.setFloat("spotLight.cutOff", spotLight.cutOff);
-        ourShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
@@ -368,96 +336,102 @@ int main() {
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
+
         float time = glfwGetTime();
         // render the loaded model
 
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               glm::vec3(-35.0f, -0.4f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
-        model = glm::rotate(model, (float)(time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
-
         glm::mat4 model_1 = glm::mat4(1.0f);
         model_1 = glm::translate(model_1,
-                                 glm::vec3(-35.0f, -0.4f, 30.0f)); // translate it down so it's at the center of the scene
+                                 glm::vec3(-30.0f, -0.4f, 60.0f)); // translate it down so it's at the center of the scene
         model_1 = glm::rotate(model_1, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model_1 = glm::scale(model_1, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
+        model_1 = glm::scale(model_1, glm::vec3(5.0f));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model_1);
         ourModel.Draw(ourShader);
 
-        glm::mat4 model1 = glm::mat4(1.0f);
-        model1 = glm::translate(model1,
-                               glm::vec3(35.0f, -0.4f, 0.0f)); // translate it down so it's at the center of the scene
-        model1 = glm::scale(model1, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
-        model1 = glm::rotate(model1, (float)(time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model1);
-        ourModel.Draw(ourShader);
+
 
         glm::mat4 model2 = glm::mat4(1.0f);
         model2 = glm::translate(model2,
-                                glm::vec3 (35.0f, -0.4f, 30.0f)); // translate it down so it's at the center of the scene
+                                glm::vec3 (30.0f, -0.4f, 60.0f)); // translate it down so it's at the center of the scene
         model2 = glm::rotate(model2, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model2 = glm::scale(model2, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
+        model2 = glm::scale(model2, glm::vec3(5.0f));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model2);
         ourModel.Draw(ourShader);
-
-
-        glm::mat4 model4 = glm::mat4(1.0f);
-        model4 = glm::translate(model4,
-                                glm::vec3 (35.0f, -0.8f, 0.0f)); // translate it down so it's at the center of the scene
-        model4 = glm::rotate(model4, (float)(time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model4 = glm::scale(model4, glm::vec3(2.0f));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model4);
-        ourModel1.Draw(ourShader);
 
 
 
         glm::mat4 model3 = glm::mat4(1.0f);
         model3 = glm::translate(model3,
-                                glm::vec3 (35.0f, -0.8f, 30.0f)); // translate it down so it's at the center of the scene
+                                glm::vec3 (30.0f, -0.8f, 60.0f)); // translate it down so it's at the center of the scene
         model3 = glm::rotate(model3, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model3 = glm::scale(model3, glm::vec3(2.0f));    // it's a bit too big for our scene, so scale it down
+        model3 = glm::scale(model3, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model3);
         ourModel1.Draw(ourShader);
 
 
 
-        glm::mat4 model_4 = glm::mat4(1.0f);
-        model_4 = glm::translate(model_4,
-                                glm::vec3 (-35.0f, -0.8f, 0.0f)); // translate it down so it's at the center of the scene
-        model_4 = glm::rotate(model_4, (float)(time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model_4 = glm::scale(model_4, glm::vec3(2.0f));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model_4);
-        ourModel1.Draw(ourShader);
-
         glm::mat4 model5 = glm::mat4(1.0f);
         model5 = glm::translate(model5,
-                                glm::vec3 (-35.0f, -0.8f, 30.0f)); // translate it down so it's at the center of the scene
+                                glm::vec3 (-30.0f, -0.8f, 60.0f)); // translate it down so it's at the center of the scene
         model5 = glm::rotate(model5, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model5 = glm::scale(model5, glm::vec3(2.0f));    // it's a bit too big for our scene, so scale it down
+        model5 = glm::scale(model5, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model5);
         ourModel1.Draw(ourShader);
 
-        glm::mat4 model6 = glm::mat4(1.0f);
-        model6 = glm::translate(model6,
-                                glm::vec3 (0.0f, 0.0f, 15.0f)); // translate it down so it's at the center of the scene
-//        model6 = glm::rotate(model6, 1.6f, glm::vec3(0.0f, 1.0f, 0.0f));
-//        model6 = glm::rotate(model6, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
-        model6 = glm::scale(model6, glm::vec3(10.0f));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model6);
-        ourModel.Draw(ourShader);
 
-        glm::mat4 model7 = glm::mat4(1.0f);
-        model7 = glm::translate(model7,
-                                glm::vec3 (0.0f, -10.0f, 10.0f)); // translate it down so it's at the center of the scene
-//        model6 = glm::rotate(model7, 1.6f, glm::vec3(0.0f, 1.0f, 0.0f));
-        model7 = glm::rotate(model7, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
-        model7 = glm::scale(model7, glm::vec3(0.3f));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model7);
-        ourModel3.Draw(ourShader);
+        float diffZ = -5.0f;
+
+        for(int i = 0; i < 3; i++){
+            diffZ += 30.0f;
+
+            glm::mat4 model6 = glm::mat4(1.0f);
+            model6 = glm::translate(model6,
+                                    glm::vec3 (-40.0f, -5.0f, diffZ)); // translate it down so it's at the center of the scene
+//            model6 = glm::rotate(model6, (float)(time / 0.5) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
+            model6 = glm::scale(model6, glm::vec3(6.0f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model6);
+            ourModel.Draw(ourShader);
+
+            glm::mat4 model7 = glm::mat4(1.0f);
+            model7 = glm::translate(model7,
+                                    glm::vec3 (-40.0f, -5.0f, diffZ)); // translate it down so it's at the center of the scene
+            model7 = glm::rotate(model7, 1.6f, glm::vec3(0.0f, 1.0f, 0.0f));
+            model7 = glm::rotate(model7, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
+            model7 = glm::scale(model7, glm::vec3(0.05f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model7);
+            ourModel3.Draw(ourShader);
+        }
+
+        diffZ = -5.0f;
+
+        for(int i = 0; i < 3; i++){
+            diffZ += 30.0f;
+
+            glm::mat4 model6 = glm::mat4(1.0f);
+            model6 = glm::translate(model6,
+                                    glm::vec3 (40.0f, -5.0f, diffZ)); // translate it down so it's at the center of the scene
+//            model6 = glm::rotate(model6, (float)(time / 0.5) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
+            model6 = glm::scale(model6, glm::vec3(6.0f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model6);
+            ourModel.Draw(ourShader);
+
+            glm::mat4 model7 = glm::mat4(1.0f);
+            model7 = glm::translate(model7,
+                                    glm::vec3 (40.0f, -5.0f, diffZ)); // translate it down so it's at the center of the scene
+            model7 = glm::rotate(model7, 1.6f, glm::vec3(0.0f, 1.0f, 0.0f));
+            model7 = glm::rotate(model7, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
+            model7 = glm::scale(model7, glm::vec3(0.05f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model7);
+            ourModel3.Draw(ourShader);
+        }
+
+        glm::mat4 model8 = glm::mat4(1.0f);
+        model8 = glm::translate(model8,
+                                glm::vec3 (0.0f, -25.0f, 20.0f)); // translate it down so it's at the center of the scene
+        model8 = glm::scale(model8, glm::vec3(35.0f));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model8);
+        ourModel1.Draw(ourShader);
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
@@ -474,6 +448,8 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
         glDepthFunc(GL_LESS); // set depth function back to default
+
+        std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -541,6 +517,16 @@ void processInput(GLFWwindow *window) {
         programState->camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         programState->camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed)
+    {
+        blinn = !blinn;
+        blinnKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
+    {
+        blinnKeyPressed = false;
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -588,9 +574,6 @@ void DrawImGui(ProgramState *programState) {
         ImGui::Text("Hello text");
         ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
         ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::DragFloat3("Backpack position", (float*)&programState->treePosition);
-        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
-
         ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.quadratic", &programState->pointLight.quadratic, 0.05, 0.0, 1.0);
