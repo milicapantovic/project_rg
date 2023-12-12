@@ -33,6 +33,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+
 bool blinn = false;
 bool blinnKeyPressed = false;
 
@@ -186,27 +187,30 @@ int main() {
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
     // load models
     // -----------
-    Model ourModel("resources/objects/Tree/Tree.obj");
-    Model ourModel1("resources/objects/mountain/avatar_mountain.obj");
-    Model ourModel2("resources/objects/bench/curvedBench.obj");
-    Model ourModel3("resources/objects/grass/10450_Rectangular_Grass_Patch_v1_iterations-2.obj");
-//    Model ourModel4("resources/objects/");
-//    Model ourModel5("resources/objects/");
-//    Model ourModel6("resources/objects/");
+    Model ourModel("resources/objects/grass/10450_Rectangular_Grass_Patch_v1_iterations-2.obj");
+    Model ourModel1("resources/objects/picnicTable/picnic_table.obj");
+    Model ourModel2("resources/objects/chess/chess.obj");
+    Model ourModel3("resources/objects/Pine_Tree_obj/Pine_Tree.obj");
+    Model ourModel4("resources/objects/street_Lamp1/Street_Lamp_1.obj");
+
+//    Model ourmodel3("resources/objects/");
 
     ourModel.SetShaderTextureNamePrefix("material.");
     ourModel1.SetShaderTextureNamePrefix("material.");
     ourModel2.SetShaderTextureNamePrefix("material.");
     ourModel3.SetShaderTextureNamePrefix("material.");
+    ourModel4.SetShaderTextureNamePrefix("material.");
+
+
 
     DirLight& dirLight = programState->dirLight;
-    dirLight.direction = glm::vec3( 50.0f, 10.0f, 2.0f);
+    dirLight.direction = glm::vec3( 0.0f, 30.0f, 40.0f);
     dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
     dirLight.diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
     dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
 
     PointLight& pointLight = programState->pointLight;
-    pointLight.position = glm::vec3(50.0f, 10.0, 10.0);
+    pointLight.position = glm::vec3(0.0f, 25.0, 40.0);
     pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
     pointLight.diffuse = glm::vec3(0.8, 0.8, 0.8);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
@@ -341,97 +345,126 @@ int main() {
         // render the loaded model
 
 
-        glm::mat4 model_1 = glm::mat4(1.0f);
-        model_1 = glm::translate(model_1,
-                                 glm::vec3(-30.0f, -0.4f, 60.0f)); // translate it down so it's at the center of the scene
-        model_1 = glm::rotate(model_1, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model_1 = glm::scale(model_1, glm::vec3(5.0f));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model_1);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model,
+                                glm::vec3 (0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::rotate(model, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.23f));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
 
-
-        glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2,
-                                glm::vec3 (30.0f, -0.4f, 60.0f)); // translate it down so it's at the center of the scene
-        model2 = glm::rotate(model2, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model2 = glm::scale(model2, glm::vec3(5.0f));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model2);
-        ourModel.Draw(ourShader);
-
-
-
-        glm::mat4 model3 = glm::mat4(1.0f);
-        model3 = glm::translate(model3,
-                                glm::vec3 (30.0f, -0.8f, 60.0f)); // translate it down so it's at the center of the scene
-        model3 = glm::rotate(model3, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model3 = glm::scale(model3, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model3);
-        ourModel1.Draw(ourShader);
-
-
-
-        glm::mat4 model5 = glm::mat4(1.0f);
-        model5 = glm::translate(model5,
-                                glm::vec3 (-30.0f, -0.8f, 60.0f)); // translate it down so it's at the center of the scene
-        model5 = glm::rotate(model5, (float)(-time / 0.7) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model5 = glm::scale(model5, glm::vec3(3.0f));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model5);
-        ourModel1.Draw(ourShader);
-
-
-        float diffZ = -5.0f;
+        float diffX = -30.0f;
+        float diffZ = -60.0f;
 
         for(int i = 0; i < 3; i++){
             diffZ += 30.0f;
 
-            glm::mat4 model6 = glm::mat4(1.0f);
-            model6 = glm::translate(model6,
-                                    glm::vec3 (-40.0f, -5.0f, diffZ)); // translate it down so it's at the center of the scene
-//            model6 = glm::rotate(model6, (float)(time / 0.5) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-            model6 = glm::scale(model6, glm::vec3(6.0f));    // it's a bit too big for our scene, so scale it down
-            ourShader.setMat4("model", model6);
-            ourModel.Draw(ourShader);
-
-            glm::mat4 model7 = glm::mat4(1.0f);
-            model7 = glm::translate(model7,
-                                    glm::vec3 (-40.0f, -5.0f, diffZ)); // translate it down so it's at the center of the scene
-            model7 = glm::rotate(model7, 1.6f, glm::vec3(0.0f, 1.0f, 0.0f));
-            model7 = glm::rotate(model7, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
-            model7 = glm::scale(model7, glm::vec3(0.05f));    // it's a bit too big for our scene, so scale it down
-            ourShader.setMat4("model", model7);
+            glm::mat4 model3 = glm::mat4(1.0f);
+            model3 = glm::translate(model3,
+                                    glm::vec3 (-30.0f, 0.3f, diffZ)); // translate it down so it's at the center of the scene
+            model3 = glm::scale(model3, glm::vec3(7.0f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model3);
             ourModel3.Draw(ourShader);
         }
 
-        diffZ = -5.0f;
+        diffZ = -60.0f;
 
-        for(int i = 0; i < 3; i++){
+        for(int i = 0; i < 3; i++)
+        {
             diffZ += 30.0f;
 
-            glm::mat4 model6 = glm::mat4(1.0f);
-            model6 = glm::translate(model6,
-                                    glm::vec3 (40.0f, -5.0f, diffZ)); // translate it down so it's at the center of the scene
-//            model6 = glm::rotate(model6, (float)(time / 0.5) + 2, glm::vec3(0.0f, 1.0f, 0.0f));
-            model6 = glm::scale(model6, glm::vec3(6.0f));    // it's a bit too big for our scene, so scale it down
-            ourShader.setMat4("model", model6);
-            ourModel.Draw(ourShader);
-
-            glm::mat4 model7 = glm::mat4(1.0f);
-            model7 = glm::translate(model7,
-                                    glm::vec3 (40.0f, -5.0f, diffZ)); // translate it down so it's at the center of the scene
-            model7 = glm::rotate(model7, 1.6f, glm::vec3(0.0f, 1.0f, 0.0f));
-            model7 = glm::rotate(model7, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
-            model7 = glm::scale(model7, glm::vec3(0.05f));    // it's a bit too big for our scene, so scale it down
-            ourShader.setMat4("model", model7);
+            glm::mat4 model3 = glm::mat4(1.0f);
+            model3 = glm::translate(model3,
+                                    glm::vec3 (30.0f, 0.3f, diffZ)); // translate it down so it's at the center of the scene
+            model3 = glm::scale(model3, glm::vec3(7.0f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model3);
             ourModel3.Draw(ourShader);
         }
 
-        glm::mat4 model8 = glm::mat4(1.0f);
-        model8 = glm::translate(model8,
-                                glm::vec3 (0.0f, -25.0f, 20.0f)); // translate it down so it's at the center of the scene
-        model8 = glm::scale(model8, glm::vec3(35.0f));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model8);
-        ourModel1.Draw(ourShader);
+        for(int i = 0; i < 2; i++)
+        {
+            diffX += 20.0f;
+
+            glm::mat4 model3 = glm::mat4(1.0f);
+            model3 = glm::translate(model3,
+                                    glm::vec3 (diffX, 0.3f, -30.0f)); // translate it down so it's at the center of the scene
+            model3 = glm::scale(model3, glm::vec3(7.0f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model3);
+            ourModel3.Draw(ourShader);
+        }
+
+
+        diffZ = -35.0f;
+        for(int i = 0; i < 2; i++)
+        {
+            diffZ += 30.0f;
+            glm::mat4 model2 = glm::mat4(1.0f);
+            model2 = glm::translate(model2,
+                                    glm::vec3 (10.0f, 8.0f, diffZ)); // translate it down so it's at the center of the scene
+            model2 = glm::scale(model2, glm::vec3(1.5f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model2);
+            ourModel2.Draw(ourShader);
+
+            glm::mat4 model1 = glm::mat4(1.0f);
+            model1 = glm::translate(model1,
+                                     glm::vec3 (10.0f, 2.5f, diffZ)); // translate it down so it's at the center of the scene
+//        model1 = glm::rotate(model1, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
+//        model1 = glm::rotate(model1, 1.6f, glm::vec3 (0.0f, 0.0f, 1.0f));
+            model1 = glm::scale(model1, glm::vec3(7.0f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model1);
+            ourModel1.Draw(ourShader);
+        }
+
+        diffZ = -35.0f;
+        for(int i = 0; i < 2; i++)
+        {
+            diffZ += 30.0f;
+            glm::mat4 model2 = glm::mat4(1.0f);
+            model2 = glm::translate(model2,
+                                    glm::vec3 (-10.0f, 8.0f, diffZ)); // translate it down so it's at the center of the scene
+            model2 = glm::scale(model2, glm::vec3(1.5f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model2);
+            ourModel2.Draw(ourShader);
+
+            glm::mat4 model1 = glm::mat4(1.0f);
+            model1 = glm::translate(model1,
+                                     glm::vec3 (-10.0f, 2.5f, diffZ)); // translate it down so it's at the center of the scene
+//        model1 = glm::rotate(model1, -1.6f, glm::vec3(1.0f, 0.0f, 0.0f));
+//        model1 = glm::rotate(model1, 1.6f, glm::vec3 (0.0f, 0.0f, 1.0f));
+            model1 = glm::scale(model1, glm::vec3(7.0f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model1);
+            ourModel1.Draw(ourShader);
+        }
+
+        diffZ = -45.0f;
+
+        for(int i = 0; i < 2; i++)
+        {
+            diffZ += 30.0f;
+            glm::mat4 model4 = glm::mat4(1.0f);
+            model4 = glm::translate(model4,
+                                    glm::vec3 (-25.0f, 3.0f, diffZ)); // translate it down so it's at the center of the scene
+            model4 = glm::scale(model4, glm::vec3(5.0f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model4);
+            ourModel4.Draw(ourShader);
+        }
+
+        diffZ = -45.0f;
+        for(int i = 0; i < 2; i++)
+        {
+            diffZ += 30.0f;
+            glm::mat4 model4 = glm::mat4(1.0f);
+            model4 = glm::translate(model4,
+                                    glm::vec3 (25.0f, 3.0f, diffZ)); // translate it down so it's at the center of the scene
+            model4 = glm::scale(model4, glm::vec3(5.0f));    // it's a bit too big for our scene, so scale it down
+            ourShader.setMat4("model", model4);
+            ourModel4.Draw(ourShader);
+        }
+
+
+
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
