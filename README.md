@@ -1,12 +1,13 @@
-# Semiramida vol 2
+# Chess In Space
 
 Projekat iz računarske grafike.
 
+
 # Uputstvo
-1. `git clone https://github.com/matf-racunarska-grafika/project_base.git`
-2. CLion -> Open -> path/to/my/project_base
-3. Main se nalazi u src/main.cpp
-4. Cpp fajlovi idu u src folder
-5. Zaglavlja (h i hpp) fajlovi idu u include
-6. Šejderi idu u folder shaders. `Vertex shader` ima ekstenziju `.vs`, `fragment shader` ima ekstenziju `.fs`
-7. ALT+SHIFT+F10 -> project_base -> run
+    Projekat se moze klonirati komandom 'git clone git@github.com:milicapantovic/project_rg.git'
+    Projekat sadrzi sve teme sa uvodnih 8 casova kao i  Depth Testing, Advanced Lighting, Face Culling, i Blending,
+    Cubemap kao oblast iz grupe A kao i Normall Mapping i Parallax Mapping kao oblast iz grupe B
+    Otvoriti projekat u CLion-u i pokrenuti na run dugme.
+    U prozoru se vidi scena po kojoj se moze kretati misemm, kao i tasterima a, s ,d i w.
+    Pritiskom na dugme B ukljucuje se Blinn-Phong osvetljenje.
+
