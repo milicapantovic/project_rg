@@ -10,6 +10,7 @@ Projekat iz računarske grafike.
     Otvoriti projekat u CLion-u i pokrenuti na run dugme.
     U prozoru se vidi scena po kojoj se moze kretati misemm, kao i tasterima a, s ,d i w.
     Pritiskom na dugme B ukljucuje se Blinn-Phong osvetljenje.
+    Pritiskom na dugme L intezitet svetla se pojacava sva puta.
 # Resources 
     Teksture preuzete sa https://www.texturecan.com
         - tekstura za Normal Mapping: 'https://www.texturecan.com/details/110/'
