@@ -8,7 +8,7 @@ Projekat iz računarske grafike.
     Projekat sadrzi sve teme sa uvodnih 8 casova kao i  Depth Testing, Advanced Lighting, Face Culling, i Blending,
     Cubemap kao oblast iz grupe A kao i Normal Mapping i Parallax Mapping kao oblast iz grupe B
     Otvoriti projekat u CLion-u i pokrenuti na run dugme.
-    U prozoru se vidi scena po kojoj se moze kretati misemm, kao i tasterima a, s ,d i w.
+    U prozoru se vidi scena po kojoj se moze kretati misem, kao i tasterima a, s ,d i w.
     Pritiskom na dugme B ukljucuje se Blinn-Phong osvetljenje.
     Pritiskom na dugme L intezitet svetla se pojacava dva puta.
 # Resources 
