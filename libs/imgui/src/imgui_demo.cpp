@@ -667,7 +667,7 @@ static void ShowDemoWindowWidgets()
             // This technique can also be used with DragInt().
             enum Element { Element_Fire, Element_Earth, Element_Air, Element_Water, Element_COUNT };
             static int elem = Element_Fire;
-            const char* elems_names[Element_COUNT] = { "Fire", "Earth", "Air", "Water" };
+            const char* elems_names[Element_COUNT] = { "light", "Earth", "Air", "Water" };
             const char* elem_name = (elem >= 0 && elem < Element_COUNT) ? elems_names[elem] : "Unknown";
             ImGui::SliderInt("slider enum", &elem, 0, Element_COUNT - 1, elem_name);
             ImGui::SameLine(); HelpMarker("Using the format string parameter to display a name instead of the underlying integer.");

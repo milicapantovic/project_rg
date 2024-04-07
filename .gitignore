@@ -7,7 +7,7 @@ project_base
 
 ### bin ###
 bin/
-
+build/
 ### C ###
 # Prerequisites
 *.d

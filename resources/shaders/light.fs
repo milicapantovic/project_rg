@@ -26,9 +26,11 @@ struct Material {
 
     float shininess;
 };
+
 in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragPos;
+
 
 uniform DirLight dirLight;
 uniform PointLight pointLight;
@@ -36,6 +38,8 @@ uniform Material material;
 
 uniform vec3 viewPosition;
 uniform bool blinn;
+uniform bool switchLight;
+
 
 
 // calculates the color when using a point light.
@@ -81,14 +85,14 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 void main()
 {
     vec3 color = texture(material.texture_diffuse1, TexCoords).rgb;
-        // ambient
+    // ambient
     vec3 ambient = 0.05 * color;
-        // diffuse
+    // diffuse
     vec3 lightDir = normalize(pointLight.position - FragPos);
     vec3 normal = normalize(Normal);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * color;
-        // specular
+    // specular
     vec3 viewDir = normalize(viewPosition - FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = 0.0;
@@ -106,6 +110,10 @@ void main()
     vec3 result = ambient + diffuse + specular;
     result += CalcDirLight(dirLight, normal, viewDir);
     result += CalcPointLight(pointLight, normal, FragPos, viewDir);
+    if(switchLight)
+    {
+            result += result;
+    }
     FragColor = vec4(result, 1.0);
 
 }

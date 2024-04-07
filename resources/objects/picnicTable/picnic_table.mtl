@@ -24,7 +24,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump boards_main_Nor_4k.jpg
+map_Bump boards_main_nor_4k.jpg
 map_Kd boards_main_diff_4k.jpg
 map_Ks boards_main_spec_4k.jpg
 map_Ns boards_main_rough_4k.jpg
