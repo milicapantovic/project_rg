@@ -11,7 +11,7 @@ Projekat iz računarske grafike.
     U prozoru se vidi scena po kojoj se moze kretati misem, kao i tasterima a, s ,d i w.
     Pritiskom na dugme B ukljucuje se Blinn-Phong osvetljenje.
     Pritiskom na dugme L intezitet svetla se pojacava dva puta.
-    Pritiskom na dugme M zaustavlja se translacija drveca.
+
 # Resources 
     Teksture preuzete sa https://www.texturecan.com
         - tekstura za Normal Mapping: 'https://www.texturecan.com/details/110/'
