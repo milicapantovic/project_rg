@@ -148,7 +148,7 @@ int main() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Chess In Space", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -585,13 +585,11 @@ int main() {
         baseShader.setVec3("lightPos", pointLight.position);
         baseShader.setFloat("heightScale", heightScale);
 
-        std::cout << heightScale << std::endl;
-
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::rotate(model, float(-1.5708f),glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(25.0f));
+        model = glm::scale(model, glm::vec3(20.0f));
         baseShader.setMat4("model", model);
         renderQuad();
 
@@ -602,7 +600,7 @@ int main() {
 
         glm::mat4 model_cube = glm::mat4(1.0f);
         model_cube = glm::translate(model_cube, glm::vec3(0.0f, -0.32f, 0.0f));
-        model_cube = glm::scale(model_cube, glm::vec3(25.0f, 0.3f, 25.0f));
+        model_cube = glm::scale(model_cube, glm::vec3(20.0f, 0.3f, 20.0f));
         modelLightingShader.setMat4("model", model_cube);
 
         unsigned int cubeVAO = 0;
@@ -673,11 +671,6 @@ int main() {
 
 
 
-
-
-
-
-
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxShader.use();
         view = glm::mat4(glm::mat3(programState->camera.GetViewMatrix())); // remove translation from the view matrix
@@ -690,8 +683,6 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
         glDepthFunc(GL_LESS); // set depth function back to default
-
-        std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
 
         if (programState->ImGuiEnabled)
